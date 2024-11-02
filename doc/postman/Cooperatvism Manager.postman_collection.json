@@ -85,6 +85,34 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Listar todas as pautas",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Listar todas as Sessões de um Pauta",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{v1}}/{{pauta_path}}/1/{{sessao_path}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{v1}}",
+								"{{pauta_path}}",
+								"1",
+								"{{sessao_path}}"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

@@ -5,6 +5,7 @@ import com.amorim.cooperativism.manager.domain.VotingSession;
 import com.amorim.cooperativism.manager.domain.to.ApplicationResponse;
 import com.amorim.cooperativism.manager.domain.to.VoteRequest;
 import com.amorim.cooperativism.manager.domain.to.VotingSessionRequest;
+import com.amorim.cooperativism.manager.domain.to.VotingSessionVO;
 import com.amorim.cooperativism.manager.event.VotingSessionCloseEvent;
 import com.amorim.cooperativism.manager.kafka.VotingSessionResultKafkaClient;
 import com.amorim.cooperativism.manager.repository.VotingSessionRepository;
@@ -24,6 +25,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -101,6 +103,11 @@ public class VotingSessionServiceImpl implements VotingSessionService {
             return ResponseEntity.badRequest().body( new ApplicationResponse("Sessão de Votação ainda não foi aberta", HttpStatus.BAD_REQUEST.value()));
 
         return this.voteService.vote(request, session);
+    }
+
+    @Override
+    public ResponseEntity<List<VotingSessionVO>> findByMeetingAgenda(MeetingAgenda agenda) {
+        return ResponseEntity.ok(this.repository.findByAgenda(agenda).stream().map(VotingSessionVO::from).toList());
     }
 
     private Runnable createCloseTask(Long id) {
