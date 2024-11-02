@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Entity
 @Table(name = "dmn_vote")
-@SequenceGenerator(name = "generator", sequenceName = "sq_vote")
+@SequenceGenerator(name = "generator", sequenceName = "sq_vote", allocationSize = 1)
 @Inheritance(strategy = InheritanceType.JOINED)
 @AttributeOverride( name = "id", column = @Column( name = "vote_id"))
 public class Vote extends PersistableEntity {

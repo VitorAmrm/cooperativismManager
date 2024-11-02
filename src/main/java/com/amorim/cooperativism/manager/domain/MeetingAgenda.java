@@ -2,20 +2,21 @@ package com.amorim.cooperativism.manager.domain;
 
 import com.amorim.cooperativism.manager.domain.generic.PersistableEntity;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "dmn_meeting_agenda")
-@SequenceGenerator(name = "generator", sequenceName = "sq_meeting_agenda")
+@SequenceGenerator(name = "generator", sequenceName = "sq_meeting_agenda", allocationSize = 1)
 @Inheritance(strategy = InheritanceType.JOINED)
 @AttributeOverride( name = "id", column = @Column( name = "meeting_agenda_id"))
 public class MeetingAgenda extends PersistableEntity {
 
     private String subject;
     private Date createdAt;
-    private MeetingAgendaStatus status;
+    private MeetingAgendaStatus status = MeetingAgendaStatus.OPEN;
     private List<VotingSession> votingSession;
 
     @Column(name = "subject")
@@ -34,7 +35,10 @@ public class MeetingAgenda extends PersistableEntity {
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
+
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
+    @ColumnTransformer(write = "?::dmn_meeting_agenda_status")
     public MeetingAgendaStatus getStatus() {
         return status;
     }

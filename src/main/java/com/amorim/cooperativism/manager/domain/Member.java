@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "dmn_member")
-@SequenceGenerator(name = "generator", sequenceName = "sq_member")
+@SequenceGenerator(name = "generator", sequenceName = "sq_member", allocationSize = 1)
 @Inheritance(strategy = InheritanceType.JOINED)
 @AttributeOverride( name = "id", column = @Column( name = "member_id"))
 public class Member extends PersistableEntity {
