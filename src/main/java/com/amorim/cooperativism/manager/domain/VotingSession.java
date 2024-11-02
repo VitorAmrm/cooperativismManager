@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "dmn_voting_session")
-@SequenceGenerator(name = "generator", sequenceName = "sq_voting_session")
+@SequenceGenerator(name = "generator", sequenceName = "sq_voting_session", allocationSize = 1)
 @Inheritance(strategy = InheritanceType.JOINED)
 @AttributeOverride( name = "id", column = @Column( name = "voting_session_id"))
 public class VotingSession  extends PersistableEntity {
@@ -17,6 +17,7 @@ public class VotingSession  extends PersistableEntity {
     private Date closedAt;
     private List<Vote> votes;
     private MeetingAgenda agenda;
+    private Long timeInMilliseconds = 60000L;
 
     public Date getOpenedAt() {
         return openedAt;
@@ -51,5 +52,13 @@ public class VotingSession  extends PersistableEntity {
 
     public void setAgenda(MeetingAgenda agenda) {
         this.agenda = agenda;
+    }
+    @Column(name = "time_in_milliseconds")
+    public Long getTimeInMilliseconds() {
+        return timeInMilliseconds;
+    }
+
+    public void setTimeInMilliseconds(Long timeInMilliseconds) {
+        this.timeInMilliseconds = timeInMilliseconds;
     }
 }
