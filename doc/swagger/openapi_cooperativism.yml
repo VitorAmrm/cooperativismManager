@@ -41,6 +41,22 @@ paths:
               examples:
                 'Erro 400':
                   $ref: "#/components/examples/ApplicationResponse400"
+    get:
+      tags:
+        - Pauta
+      summary: Listando todas as pauta
+      description: Listando todas as pauta
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetingVOList"
+              examples:
+                'Resposta com Sucesso':
+                  $ref: "#/components/examples/MeetingVOList"
+
   /api/v1/pauta/{pautaId}/sessao:
     post:
       tags:
@@ -84,6 +100,31 @@ paths:
         required: true
         schema:
           type: string
+    get:
+      tags:
+        - Pauta
+      summary: Listando todas as Sessões de uma Pauta
+      description: Listando todas as Sessões de uma Pauta
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingVOList"
+              examples:
+                'Resposta com Sucesso':
+                  $ref: "#/components/examples/VotingVOList200"
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VotingVOList"
+              examples:
+                'Não foi encontrado pauta':
+                  $ref: "#/components/examples/VotingVOList400"
+
   /api/v1/pauta/{pautaId}/fechar:
     put:
       tags:
@@ -117,7 +158,7 @@ paths:
         schema:
           type: string
 
-  /v1/sessao/{sessaoId}/abrir:
+  /api/v1/sessao/{sessaoId}/abrir:
     put:
       tags:
         - Sessão de Votação
@@ -150,7 +191,7 @@ paths:
         required: true
         schema:
           type: string
-  /v1/sessao/{sessaoId}/votar:
+  /api/v1/sessao/{sessaoId}/votar:
     post:
       tags:
         - Sessão de Votação
@@ -263,6 +304,26 @@ components:
         temporalType:
           type: string
           description: "Unidade temporal: podendo ser HOURS, MINUTES, DECADES etc.."
+    MeetingVOList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+          subject:
+            type: string
+    VotingVOList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+          isOpen:
+            type: boolean
+          shouldCloseAt:
+            type: string
   examples:
     ApplicationResponse200:
       value:
@@ -274,6 +335,24 @@ components:
         message: "Objeto invalido"
         code: 400
         date: "2024-11-02T19:24:03.191+00:00"
+    MeetingVOList:
+      value:
+        id: 1
+        subject: "1º Tema Exemplo"
+    VotingVOList200:
+      value:
+        - id: 1
+          isOpen: false
+          shouldCloseAt: null
+        - id: 2
+          isOpen: true
+          shouldCloseAt: "2024-11-02T19:24:03.191+00:00"
+    VotingVOList400:
+      value:
+        []
+
+
+
 
 
 

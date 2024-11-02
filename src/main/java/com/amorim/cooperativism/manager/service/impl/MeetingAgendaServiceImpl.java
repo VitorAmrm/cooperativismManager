@@ -2,9 +2,7 @@ package com.amorim.cooperativism.manager.service.impl;
 
 import com.amorim.cooperativism.manager.domain.MeetingAgenda;
 import com.amorim.cooperativism.manager.domain.MeetingAgendaStatus;
-import com.amorim.cooperativism.manager.domain.to.ApplicationResponse;
-import com.amorim.cooperativism.manager.domain.to.MeetingAgendaRequest;
-import com.amorim.cooperativism.manager.domain.to.VotingSessionRequest;
+import com.amorim.cooperativism.manager.domain.to.*;
 import com.amorim.cooperativism.manager.repository.MeetingAgendaRepository;
 import com.amorim.cooperativism.manager.service.MeetingAgendaService;
 import com.amorim.cooperativism.manager.service.VotingSessionService;
@@ -12,8 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class MeetingAgendaServiceImpl implements MeetingAgendaService {
@@ -67,5 +64,18 @@ public class MeetingAgendaServiceImpl implements MeetingAgendaService {
         );
 
         return ResponseEntity.ok( new ApplicationResponse("Pauta fechada com sucesso", HttpStatus.OK.value()));
+    }
+
+    @Override
+    public ResponseEntity<List<MeetingAgendaVO>> findAll() {
+        return ResponseEntity.ok(this.repository.findAll().stream().map(MeetingAgendaVO::from).toList());
+    }
+
+    @Override
+    public ResponseEntity<List<VotingSessionVO>> findAllSessionsByMeetingAgenda(Long meetingAgendaId) {
+        Optional<MeetingAgenda> optMeeting = this.repository.findById(meetingAgendaId);
+        if(optMeeting.isEmpty())
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        return this.votingService.findByMeetingAgenda(optMeeting.get());
     }
 }
