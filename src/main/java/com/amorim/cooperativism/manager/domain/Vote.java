@@ -15,6 +15,7 @@ public class Vote extends PersistableEntity {
     private Boolean value;
     private Date createdAt;
     private VotingSession session;
+    private String memberNationalId;
 
     @Column(name = "value")
     public Boolean getValue() {
@@ -37,8 +38,15 @@ public class Vote extends PersistableEntity {
     public VotingSession getSession() {
         return session;
     }
-
     public void setSession(VotingSession session) {
         this.session = session;
+    }
+    @Column(name = "member_national_id")
+    public String getMemberNationalId() {
+        return memberNationalId;
+    }
+
+    public void setMemberNationalId(String memberNationalId) {
+        this.memberNationalId = memberNationalId;
     }
 }

@@ -1,0 +1,283 @@
+openapi: 3.0.3
+info:
+  title: Cooperatvism Manager
+  version: 1.0.0
+  contact: {}
+servers:
+  - url: http://localhost:8080/
+paths:
+  /api/v1/pauta/:
+    post:
+      tags:
+        - Pauta
+      summary: Criando um pauta
+      description: Criando um pauta
+      operationId: criandoUmPauta
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetingAgendaRequest"
+            examples:
+              Criando um pauta:
+                value:
+                  subject: Nova Pauta
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Resposta com Sucesso':
+                  $ref: "#/components/examples/ApplicationResponse200"
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Erro 400':
+                  $ref: "#/components/examples/ApplicationResponse400"
+  /api/v1/pauta/{pautaId}/sessao:
+    post:
+      tags:
+        - Pauta
+      summary: Criando uma sessão de votação
+      description: Criando uma sessão de votação
+      operationId: criandoUmaSessODeVotaO
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VotingSessionRequest"
+            examples:
+              Criando uma sessão de votação:
+                value:
+                  openWhenCreate: false
+                  temporalQuantity: 2
+                  temporalType: MINUTES
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Resposta com Sucesso':
+                  $ref: "#/components/examples/ApplicationResponse200"
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Erro 400':
+                  $ref: "#/components/examples/ApplicationResponse400"
+    parameters:
+      - name: pautaId
+        in: path
+        required: true
+        schema:
+          type: string
+  /api/v1/pauta/{pautaId}/fechar:
+    put:
+      tags:
+        - Pauta
+      summary: Fechando um pauta
+      description: Fechando um pauta
+      operationId: fechandoUmPauta
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Resposta com Sucesso':
+                  $ref: "#/components/examples/ApplicationResponse200"
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Erro 400':
+                  $ref: "#/components/examples/ApplicationResponse400"
+    parameters:
+      - name: pautaId
+        in: path
+        required: true
+        schema:
+          type: string
+
+  /v1/sessao/{sessaoId}/abrir:
+    put:
+      tags:
+        - Sessão de Votação
+      summary: Abrindo uma Sessão de Votação
+      description: Abrindo uma Sessão de Votação
+      operationId: abrindoUmaSessODeVotaO
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Resposta com Sucesso':
+                  $ref: "#/components/examples/ApplicationResponse200"
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Erro 400':
+                  $ref: "#/components/examples/ApplicationResponse400"
+
+    parameters:
+      - name: sessaoId
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/sessao/{sessaoId}/votar:
+    post:
+      tags:
+        - Sessão de Votação
+      summary: Votando
+      description: Votando
+      operationId: votando
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteRequest"
+            examples:
+              Votando:
+                value:
+                  nationalId: '63708139012'
+                  value: false
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Resposta com Sucesso':
+                  $ref: "#/components/examples/ApplicationResponse200"
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+              examples:
+                'Erro 400':
+                  $ref: "#/components/examples/ApplicationResponse400"
+    parameters:
+      - name: sessaoId
+        in: path
+        required: true
+        schema:
+          type: string
+
+  /users/43243:
+    get:
+      tags:
+        - Serviço Externo
+      summary: Teste do serviço externo
+      description: Teste do serviço externo
+      operationId: testeDoServiOExterno
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse" # Reference to an object
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse" # R
+components:
+  schemas:
+    ApplicationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: "Mensagem explicativa sobre a ação feita"
+        code:
+          type: integer
+          description: "Codigo de resposta, similar ao codigo http"
+        date:
+          type: string
+          description: "Data e Hora da resposta"
+    VoteRequest:
+      type: object
+      required:
+        - nationalId
+        - value
+      properties:
+        nationalId:
+          type: string
+          minLength: 11
+          maxLength: 11
+          description: "Deve ser enviado o CPF sem caracteres especiais"
+        value:
+          type: boolean
+          description: "Valor do voto"
+    MeetingAgendaRequest:
+      type: object
+      required:
+        - subject
+      properties:
+        subject:
+          type: string
+          description: "Assunto ao qual a Pauta se refere"
+    VotingSessionRequest:
+      type: object
+      required:
+        - openWhenCreate
+      properties:
+        openWhenCreate:
+          type: boolean
+          description: "Se deve ou não abrir a sessão de votação assim que criar"
+        temporalQuantity:
+          type: integer
+          description: "Quantidade de tempo que a votação estará aberta"
+        temporalType:
+          type: string
+          description: "Unidade temporal: podendo ser HOURS, MINUTES, DECADES etc.."
+  examples:
+    ApplicationResponse200:
+      value:
+        message: "Objeto criado com sucesso"
+        code: 200
+        date: "2024-11-02T19:24:03.191+00:00"
+    ApplicationResponse400:
+      value:
+        message: "Objeto invalido"
+        code: 400
+        date: "2024-11-02T19:24:03.191+00:00"
+
+
+
+tags:
+  - name: Pauta
+  - name: Sessão de Votação
+  - name: Serviço Externo

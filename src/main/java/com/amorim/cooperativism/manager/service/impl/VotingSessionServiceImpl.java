@@ -3,12 +3,19 @@ package com.amorim.cooperativism.manager.service.impl;
 import com.amorim.cooperativism.manager.domain.MeetingAgenda;
 import com.amorim.cooperativism.manager.domain.VotingSession;
 import com.amorim.cooperativism.manager.domain.to.ApplicationResponse;
+import com.amorim.cooperativism.manager.domain.to.VoteRequest;
 import com.amorim.cooperativism.manager.domain.to.VotingSessionRequest;
+import com.amorim.cooperativism.manager.event.VotingSessionCloseEvent;
+import com.amorim.cooperativism.manager.kafka.VotingSessionResultKafkaClient;
 import com.amorim.cooperativism.manager.repository.VotingSessionRepository;
 import com.amorim.cooperativism.manager.schedule.VotingSessionCloseScheduler;
+import com.amorim.cooperativism.manager.service.VoteService;
 import com.amorim.cooperativism.manager.service.VotingSessionService;
+import jakarta.transaction.Transactional;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,28 +32,38 @@ public class VotingSessionServiceImpl implements VotingSessionService {
 
     private final VotingSessionRepository repository;
     private final VotingSessionCloseScheduler scheduler;
+    private final VoteService voteService;
+    private final VotingSessionResultKafkaClient client;
+    private final ApplicationEventPublisher eventPublisher;
     private static final Logger LOG = LoggerFactory.getLogger(VotingSessionServiceImpl.class);
 
-    public VotingSessionServiceImpl(VotingSessionRepository repository, VotingSessionCloseScheduler scheduler) {
+    public VotingSessionServiceImpl(VotingSessionRepository repository, VotingSessionCloseScheduler scheduler, VoteService voteService, VotingSessionResultKafkaClient client, ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
         this.scheduler = scheduler;
+        this.voteService = voteService;
+        this.client = client;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
     public ResponseEntity<ApplicationResponse> open(Long id) {
-        Optional<VotingSession> votingSession = this.repository.findById(id);
+        Optional<VotingSession> optVotingSession = this.repository.findById(id);
 
-        if (votingSession.isEmpty())
+        if (optVotingSession.isEmpty())
             return ResponseEntity.badRequest().body(new ApplicationResponse("Sessão não encontrada",HttpStatus.BAD_REQUEST.value()) );
 
-        String message = "Sessão aberta com sucesso.";
-        votingSession.ifPresent(
-                (session) -> {
-                    session.setOpenedAt(new Date());
-                    repository.save(session);
-                    scheduler.closeAt(createCloseTask(session.getId()), Instant.now().plusMillis(session.getTimeInMilliseconds()));
-                }
-        );
+        VotingSession votingSession = optVotingSession.get();
+
+        if(Objects.nonNull(votingSession.getClosedAt()))
+            return ResponseEntity.badRequest().body(new ApplicationResponse("Sessão já foi fechada",HttpStatus.BAD_REQUEST.value()) );
+
+        if(Objects.nonNull(votingSession.getOpenedAt()))
+            return ResponseEntity.badRequest().body(new ApplicationResponse("Sessão já está aberta", HttpStatus.BAD_REQUEST.value()));
+
+        votingSession.setOpenedAt(new Date());
+        repository.save(votingSession);
+
+        scheduler.closeAt(createCloseTask(votingSession.getId()), Instant.now().plusMillis(votingSession.getTimeInMilliseconds()));
 
         return ResponseEntity.ok(new ApplicationResponse("Sessão aberta com sucesso. Essa sessão será fechada as {}", HttpStatus.OK.value()));
     }
@@ -72,15 +89,21 @@ public class VotingSessionServiceImpl implements VotingSessionService {
         return ResponseEntity.ok(new ApplicationResponse(message, HttpStatus.OK.value()));
     }
 
+    @Override
+    public ResponseEntity<ApplicationResponse> vote(Long votingSessionId, VoteRequest request) {
+        Optional<VotingSession> optSession = this.repository.findById(votingSessionId);
+
+        if(optSession.isEmpty())
+            return ResponseEntity.badRequest().body( new ApplicationResponse("Sessão de Votação não existe", HttpStatus.BAD_REQUEST.value()));
+
+        VotingSession session = optSession.get();
+        if(Objects.isNull(session.getOpenedAt()))
+            return ResponseEntity.badRequest().body( new ApplicationResponse("Sessão de Votação ainda não foi aberta", HttpStatus.BAD_REQUEST.value()));
+
+        return this.voteService.vote(request, session);
+    }
+
     private Runnable createCloseTask(Long id) {
-        return () -> {
-            this.repository.findById(id).ifPresent(
-                    (session) -> {
-                        session.setClosedAt(new Date());
-                        this.repository.save(session);
-                        LOG.info("A Sessão de Votação de Id {} foi fechada", id);
-                    }
-            );
-        };
+        return () -> this.eventPublisher.publishEvent(new VotingSessionCloseEvent(id));
     }
 }

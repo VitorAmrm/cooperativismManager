@@ -1,0 +1,200 @@
+{
+	"info": {
+		"_postman_id": "20a0ddc9-8bb3-4dd8-a1e1-08ab7227e375",
+		"name": "Cooperatvism Manager",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39443197"
+	},
+	"item": [
+		{
+			"name": "Pauta",
+			"item": [
+				{
+					"name": "Criando um pauta",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"subject\": \"Nova Pauta\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/{{v1}}/{{pauta_path}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{v1}}",
+								"{{pauta_path}}",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criando uma sessão de votação",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"temporalQuantity\": 2,\r\n    \"temporalType\": \"MINUTES\",\r\n    \"openWhenCreate\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/{{v1}}/{{pauta_path}}/{{idReferencia}}/{{sessao_path}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{v1}}",
+								"{{pauta_path}}",
+								"{{idReferencia}}",
+								"{{sessao_path}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fechando um pauta",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{v1}}/{{pauta_path}}/{{idReferencia}}/fechar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{v1}}",
+								"{{pauta_path}}",
+								"{{idReferencia}}",
+								"fechar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sessão de Votação",
+			"item": [
+				{
+					"name": "Abrindo uma Sessão de Votação",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/{{v1}}/{{sessao_path}}/{{idReferencia}}/abrir",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{v1}}",
+								"{{sessao_path}}",
+								"{{idReferencia}}",
+								"abrir"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Votando",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nationalId\": \"63708139012\",\r\n    \"value\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/{{v1}}/{{sessao_path}}/{{idReferencia}}/votar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{v1}}",
+								"{{sessao_path}}",
+								"{{idReferencia}}",
+								"votar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "External Service",
+			"item": [
+				{
+					"name": "Teste do serviço externo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3001/users/43243",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"users",
+								"43243"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"pm.globals.set(\"base_url\",\"http://localhost:8080\")\r",
+					"pm.globals.set(\"v1\",\"api/v1\")\r",
+					"pm.globals.set(\"pauta_path\",\"pauta\")\r",
+					"pm.globals.set(\"sessao_path\",\"sessao\")\r",
+					"pm.globals.set(\"vote_path\",\"voto\")\r",
+					"pm.globals.set(\"associado_path\",\"associado\")\r",
+					"\r",
+					"pm.globals.set(\"idReferencia\", \"1\")"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

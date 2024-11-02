@@ -5,6 +5,7 @@ import com.amorim.cooperativism.manager.domain.to.ApplicationResponse;
 import com.amorim.cooperativism.manager.domain.to.MeetingAgendaRequest;
 import com.amorim.cooperativism.manager.domain.to.VotingSessionRequest;
 import com.amorim.cooperativism.manager.service.MeetingAgendaService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +20,12 @@ public class MeetingAgendaController {
     }
 
     @PostMapping("/")
-    ResponseEntity<ApplicationResponse> create(@RequestBody MeetingAgendaRequest meetingAgendaRequest) {
+    ResponseEntity<ApplicationResponse> create(@RequestBody @Valid MeetingAgendaRequest meetingAgendaRequest) {
         return service.create(meetingAgendaRequest);
     }
 
     @PostMapping("/{meetingAgenda}/sessao")
-    ResponseEntity<ApplicationResponse> createSession(@RequestBody VotingSessionRequest votingSessionRequest, @PathVariable("meetingAgenda") Long meetingAgendaId) {
+    ResponseEntity<ApplicationResponse> createSession(@RequestBody @Valid VotingSessionRequest votingSessionRequest, @PathVariable("meetingAgenda") Long meetingAgendaId) {
         return service.createVotingSession(votingSessionRequest, meetingAgendaId);
     }
 
