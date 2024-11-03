@@ -1,9 +1,10 @@
 package com.amorim.cooperativism.manager.controller.v1;
 
-import com.amorim.cooperativism.manager.domain.constants.ApplicationConstants;
 import com.amorim.cooperativism.manager.domain.to.ApplicationResponse;
 import com.amorim.cooperativism.manager.domain.to.MeetingAgendaRequest;
+import com.amorim.cooperativism.manager.domain.to.MeetingAgendaVO;
 import com.amorim.cooperativism.manager.domain.to.VotingSessionRequest;
+import com.amorim.cooperativism.manager.domain.to.VotingSessionVO;
 import com.amorim.cooperativism.manager.service.MeetingAgendaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,72 +13,92 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class MeetingAgendaControllerTest {
+class MeetingAgendaControllerTest {
 
     @InjectMocks
-    private MeetingAgendaController controller;
+    private MeetingAgendaController meetingAgendaController;
 
     @Mock
     private MeetingAgendaService service;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testCreate() {
-        // Arrange
+    void testCreate() {
         MeetingAgendaRequest request = new MeetingAgendaRequest();
-        ApplicationResponse expectedResponse = new ApplicationResponse("Success", 200, new Date());
+        ApplicationResponse expectedResponse = new ApplicationResponse("",1);
+        when(service.create(any(MeetingAgendaRequest.class))).thenReturn(ResponseEntity.ok(expectedResponse));
 
-        when(service.create(request)).thenReturn(ResponseEntity.ok(expectedResponse));
+        ResponseEntity<ApplicationResponse> response = meetingAgendaController.create(request);
 
-        ResponseEntity<ApplicationResponse> response = controller.create(request);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Success", response.getBody().getMessage());
-        assertEquals(expectedResponse.getDatetime(), response.getBody().getDatetime());
-        verify(service, times(1)).create(request);
+        assertEquals(expectedResponse, response.getBody());
+        verify(service).create(request);
     }
 
     @Test
-    public void testCreateSession() {
+    void testCreateSession() {
         VotingSessionRequest request = new VotingSessionRequest();
         Long meetingAgendaId = 1L;
-        ApplicationResponse expectedResponse = new ApplicationResponse("Session Created", 201, new Date());
+        ApplicationResponse expectedResponse = createDefault();
+        when(service.createVotingSession(any(VotingSessionRequest.class), eq(meetingAgendaId)))
+                .thenReturn(ResponseEntity.ok(expectedResponse));
 
-        when(service.createVotingSession(request, meetingAgendaId)).thenReturn(ResponseEntity.status(201).body(expectedResponse));
+        ResponseEntity<ApplicationResponse> response = meetingAgendaController.createSession(request, meetingAgendaId);
 
-        ResponseEntity<ApplicationResponse> response = controller.createSession(request, meetingAgendaId);
-
-        assertEquals(201, response.getStatusCodeValue());
-        assertEquals("Session Created", response.getBody().getMessage());
-        assertEquals(expectedResponse.getDatetime(), response.getBody().getDatetime());
-        verify(service, times(1)).createVotingSession(request, meetingAgendaId);
+        assertEquals(expectedResponse, response.getBody());
+        verify(service).createVotingSession(request, meetingAgendaId);
     }
 
     @Test
-    public void testClose() {
-        // Arrange
+    void testClose() {
         Long meetingAgendaId = 1L;
-        ApplicationResponse expectedResponse = new ApplicationResponse("Meeting Agenda Closed", 200, new Date());
-
-
+        ApplicationResponse expectedResponse = createDefault();
         when(service.close(meetingAgendaId)).thenReturn(ResponseEntity.ok(expectedResponse));
 
-        // Act
-        ResponseEntity<ApplicationResponse> response = controller.close(meetingAgendaId);
+        ResponseEntity<ApplicationResponse> response = meetingAgendaController.close(meetingAgendaId);
 
-        // Assert
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Meeting Agenda Closed", response.getBody().getMessage());
-        assertEquals(expectedResponse.getDatetime(), response.getBody().getDatetime());
-        verify(service, times(1)).close(meetingAgendaId);
+        assertEquals(expectedResponse, response.getBody());
+        verify(service).close(meetingAgendaId);
+    }
+
+    @Test
+    void testList() {
+        List<MeetingAgendaVO> expectedList = Collections.singletonList(new MeetingAgendaVO(1L,"Tema"));
+        when(service.findAll()).thenReturn(ResponseEntity.ok(expectedList));
+
+        ResponseEntity<List<MeetingAgendaVO>> response = meetingAgendaController.list();
+
+        assertEquals(expectedList, response.getBody());
+        verify(service).findAll();
+    }
+
+    @Test
+    void testListSessions() {
+        Long meetingAgendaId = 1L;
+        List<VotingSessionVO> expectedList = Collections.singletonList(new VotingSessionVO(1L,true, Instant.now().atZone(ZoneId.systemDefault())));
+        when(service.findAllSessionsByMeetingAgenda(meetingAgendaId)).thenReturn(ResponseEntity.ok(expectedList));
+
+        ResponseEntity<List<VotingSessionVO>> response = meetingAgendaController.listSessions(meetingAgendaId);
+
+        assertEquals(expectedList, response.getBody());
+        verify(service).findAllSessionsByMeetingAgenda(meetingAgendaId);
+    }
+
+    private ApplicationResponse createDefault() {
+        return new ApplicationResponse("",1);
     }
 }
