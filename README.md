@@ -37,6 +37,11 @@ A aplicação faz o gerenciamento de Assembleias, sendo possivel cadastrar pauta
 | `request.limit.filter.value`               | `int`       | Limite de requisições do filtro                       | `150`                               |
 
 # Como subir a Stack
+:warning:
+
+:rotating_light: :rotating_light: :rotating_light:
+Antes de tudo é importante que o java da máquina que irá executar o `passo 3º` seja o Java 21
+:rotating_light: :rotating_light: :rotating_light:
 
 - `1º` Realizar o `git clone -b v1.0.0.0 https://github.com/VitorAmrm/cooperativismManager.git`
 - `2º` Rodar no terminal `cd cooperativismManager`
