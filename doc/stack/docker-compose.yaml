@@ -64,7 +64,7 @@ services:
       retries: 3
 
   cooperativism:
-    image: amorim/cooperativism-manager:1.0.0.0-SNAPSHOT
+    image: amorim/cooperativism-manager:1.0.0.0
     networks:
       - app-net
     env_file:
