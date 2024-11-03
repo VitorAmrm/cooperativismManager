@@ -17,6 +17,16 @@ public class Vote extends PersistableEntity {
     private VotingSession session;
     private String memberNationalId;
 
+    public Vote() {
+    }
+
+    public Vote(Boolean value, Date createdAt, VotingSession session, String memberNationalId) {
+        this.value = value;
+        this.createdAt = createdAt;
+        this.session = session;
+        this.memberNationalId = memberNationalId;
+    }
+
     @Column(name = "value")
     public Boolean getValue() {
         return value;

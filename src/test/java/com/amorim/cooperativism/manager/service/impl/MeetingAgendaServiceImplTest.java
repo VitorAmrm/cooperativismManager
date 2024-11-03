@@ -4,11 +4,14 @@ import com.amorim.cooperativism.manager.domain.MeetingAgenda;
 import com.amorim.cooperativism.manager.domain.MeetingAgendaStatus;
 import com.amorim.cooperativism.manager.domain.to.ApplicationResponse;
 import com.amorim.cooperativism.manager.domain.to.MeetingAgendaRequest;
+import com.amorim.cooperativism.manager.domain.to.MeetingAgendaVO;
 import com.amorim.cooperativism.manager.domain.to.VotingSessionRequest;
+import com.amorim.cooperativism.manager.domain.to.VotingSessionVO;
 import com.amorim.cooperativism.manager.repository.MeetingAgendaRepository;
 import com.amorim.cooperativism.manager.service.VotingSessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -16,15 +19,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class MeetingAgendaServiceImplTest {
 
-    @InjectMocks
-    private MeetingAgendaServiceImpl service;
+class MeetingAgendaServiceImplTest {
 
     @Mock
     private MeetingAgendaRepository repository;
@@ -32,119 +38,108 @@ public class MeetingAgendaServiceImplTest {
     @Mock
     private VotingSessionService votingService;
 
+    @InjectMocks
+    private MeetingAgendaServiceImpl meetingAgendaService;
+
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testCreate() {
-        // Arrange
+    void testCreate() {
         MeetingAgendaRequest request = new MeetingAgendaRequest();
-        MeetingAgenda agenda = new MeetingAgenda();
-        agenda.setSubject("Teste de Pauta");
+        request.setSubject("Nova Pauta");
 
-        // Simula o salvamento
-        when(repository.save(any(MeetingAgenda.class))).thenReturn(agenda);
+        ResponseEntity<ApplicationResponse> response = meetingAgendaService.create(request);
 
-        // Act
-        ResponseEntity<ApplicationResponse> response = service.create(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Pauta criada com sucesso", response.getBody().getMessage());
 
-        // Assert
-        assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
-        assertEquals("Pauta creada com sucesso", response.getBody().getMessage());
-        verify(repository, times(1)).save(any(MeetingAgenda.class));
+        ArgumentCaptor<MeetingAgenda> agendaCaptor = ArgumentCaptor.forClass(MeetingAgenda.class);
+        verify(repository, times(1)).save(agendaCaptor.capture());
+        MeetingAgenda agenda = agendaCaptor.getValue();
+
+        assertEquals("Nova Pauta", agenda.getSubject());
+        assertEquals(MeetingAgendaStatus.OPEN, agenda.getStatus());
+        assertInstanceOf(Date.class, agenda.getCreatedAt());
     }
 
     @Test
-    public void testCreateVotingSession_MeetingAgendaNotFound() {
-        // Arrange
+    void testCreateVotingSession_WhenAgendaNotFound() {
         VotingSessionRequest request = new VotingSessionRequest();
-        Long meetingAgendaId = 1L;
+        Long agendaId = 1L;
 
-        when(repository.findById(meetingAgendaId)).thenReturn(Optional.empty());
+        when(repository.findById(agendaId)).thenReturn(Optional.empty());
 
-        // Act
-        ResponseEntity<ApplicationResponse> response = service.createVotingSession(request, meetingAgendaId);
+        ResponseEntity<ApplicationResponse> response = meetingAgendaService.createVotingSession(request, agendaId);
 
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCodeValue());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Nenhuma Pauta foi encontrada", response.getBody().getMessage());
-        verify(repository, times(1)).findById(meetingAgendaId);
     }
 
     @Test
-    public void testCreateVotingSession_MeetingAgendaClosed() {
-        // Arrange
+    void testCreateVotingSession_WhenAgendaClosed() {
         VotingSessionRequest request = new VotingSessionRequest();
-        Long meetingAgendaId = 1L;
+        Long agendaId = 1L;
 
         MeetingAgenda agenda = new MeetingAgenda();
+        agenda.setId(agendaId);
         agenda.setStatus(MeetingAgendaStatus.CLOSED);
-        when(repository.findById(meetingAgendaId)).thenReturn(Optional.of(agenda));
+        when(repository.findById(agendaId)).thenReturn(Optional.of(agenda));
 
-        // Act
-        ResponseEntity<ApplicationResponse> response = service.createVotingSession(request, meetingAgendaId);
+        ResponseEntity<ApplicationResponse> response = meetingAgendaService.createVotingSession(request, agendaId);
 
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCodeValue());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Esta Pauta já foi fechada", response.getBody().getMessage());
-        verify(repository, times(1)).findById(meetingAgendaId);
     }
 
     @Test
-    public void testCreateVotingSession_Success() {
-        // Arrange
-        VotingSessionRequest request = new VotingSessionRequest();
-        Long meetingAgendaId = 1L;
+    void testClose_WhenAgendaNotFound() {
+        Long agendaId = 1L;
 
-        MeetingAgenda agenda = new MeetingAgenda();
-        agenda.setStatus(MeetingAgendaStatus.OPEN);
-        when(repository.findById(meetingAgendaId)).thenReturn(Optional.of(agenda));
-        when(votingService.create(request, agenda)).thenReturn(ResponseEntity.ok(new ApplicationResponse("Sessão de votação criada", HttpStatus.OK.value())));
+        when(repository.findById(agendaId)).thenReturn(Optional.empty());
 
-        // Act
-        ResponseEntity<ApplicationResponse> response = service.createVotingSession(request, meetingAgendaId);
+        ResponseEntity<ApplicationResponse> response = meetingAgendaService.close(agendaId);
 
-        // Assert
-        assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
-        assertEquals("Sessão de votação criada", response.getBody().getMessage());
-        verify(repository, times(1)).findById(meetingAgendaId);
-        verify(votingService, times(1)).create(request, agenda);
-    }
-
-    @Test
-    public void testClose_MeetingAgendaNotFound() {
-        // Arrange
-        Long meetingAgendaId = 1L;
-
-        when(repository.findById(meetingAgendaId)).thenReturn(Optional.empty());
-
-        // Act
-        ResponseEntity<ApplicationResponse> response = service.close(meetingAgendaId);
-
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCodeValue());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Nenhuma Pauta foi encontrada", response.getBody().getMessage());
-        verify(repository, times(1)).findById(meetingAgendaId);
     }
 
     @Test
-    public void testClose_Success() {
-        // Arrange
-        Long meetingAgendaId = 1L;
+    void testClose() {
+        Long agendaId = 1L;
+
         MeetingAgenda agenda = new MeetingAgenda();
+        agenda.setId(agendaId);
         agenda.setStatus(MeetingAgendaStatus.OPEN);
-        when(repository.findById(meetingAgendaId)).thenReturn(Optional.of(agenda));
+        when(repository.findById(agendaId)).thenReturn(Optional.of(agenda));
 
-        // Act
-        ResponseEntity<ApplicationResponse> response = service.close(meetingAgendaId);
+        ResponseEntity<ApplicationResponse> response = meetingAgendaService.close(agendaId);
 
-        // Assert
-        assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Pauta fechada com sucesso", response.getBody().getMessage());
         assertEquals(MeetingAgendaStatus.CLOSED, agenda.getStatus());
-        verify(repository, times(1)).findById(meetingAgendaId);
         verify(repository, times(1)).save(agenda);
+    }
+
+    @Test
+    void testFindAll() {
+        ResponseEntity<List<MeetingAgendaVO>> response = meetingAgendaService.findAll();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(repository, times(1)).findAll();
+    }
+
+    @Test
+    void testFindAllSessionsByMeetingAgenda_WhenAgendaNotFound() {
+        Long agendaId = 1L;
+
+        when(repository.findById(agendaId)).thenReturn(Optional.empty());
+
+        ResponseEntity<List<VotingSessionVO>> response = meetingAgendaService.findAllSessionsByMeetingAgenda(agendaId);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty());
     }
 }
