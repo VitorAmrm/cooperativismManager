@@ -10,15 +10,19 @@
 	</parent>
 	<groupId>com.amorim</groupId>
 	<artifactId>cooperativism.manager</artifactId>
-	<version>1.0.0.0-SNAPSHOT</version>
+	<version>1.0.0.0</version>
 	<name>cooperativism-manager</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Aplicação para gerenciamento de pautas</description>
 	<url/>
 	<licenses>
 		<license/>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<id>VitorAmrm</id> <!-- github id -->
+			<name>Luis Vitor Amorim</name>
+			<email>vitoramorimaraujo5@gmail.com</email>
+		</developer>
 	</developers>
 	<properties>
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
