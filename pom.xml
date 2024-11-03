@@ -11,7 +11,7 @@
 	<groupId>com.amorim</groupId>
 	<artifactId>cooperativism.manager</artifactId>
 	<version>1.0.0.0-SNAPSHOT</version>
-	<name>cooperativism.manager</name>
+	<name>cooperativism-manager</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -21,8 +21,8 @@
 		<developer/>
 	</developers>
 	<properties>
-		<java.version>21</java.version>
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -71,6 +71,10 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -114,6 +118,19 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>3.3.1</version>
+				<configuration>
+					<from>
+						<image>openjdk:21-jdk-slim</image>
+					</from>
+					<to>
+						<image>amorim/${project.name}:${project.version}</image>
+					</to>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
