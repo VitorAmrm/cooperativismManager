@@ -1,0 +1,99 @@
+version: '3.8'  # Use a versão 3.8 para suporte a healthchecks
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - /tmp/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: root
+    ports:
+      - 5432:5432
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    networks:
+      - app-net
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: nc -z localhost 2181 || exit -1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    networks:
+      - app-net
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    networks:
+      - app-net
+    depends_on:
+      - kafka
+    ports:
+      - 19000:9000
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://kafdrop:9000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  cooperativism:
+    image: amorim/cooperativism-manager:1.0.0.0-SNAPSHOT
+    networks:
+      - app-net
+    env_file:
+      - cooperativism.env
+    depends_on:
+      - kafka
+      - db
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  mockoon:
+    image: mockoon/cli:latest
+    networks:
+      - app-net
+    volumes:
+      - ../mockoon:/home/mockoon
+    command: ["--data", "/home/mockoon/cooperativeValidator.json", "--port", "3001"]
+    ports:
+      - 3001:3001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://mockoon:3001/users/1"]
+      timeout: 5s
+      retries: 3
+
+networks:
+  app-net:
+    driver: bridge
